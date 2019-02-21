@@ -41,7 +41,7 @@ bool checkResults(uchar4* rgba, uchar3* bgr, int size) {
 }
 
 // Original
-void _convertBGR2RGBA(uchar3* bgr, uchar4* rgba, int width, int height) {
+void convertBGR2RGBA(uchar3* bgr, uchar4* rgba, int width, int height) {
     for (int x=0; x<width; ++x) {
         for (int y=0; y<height; ++y) {
             rgba[width * y + x].x = bgr[width * y + x].z;
@@ -52,8 +52,28 @@ void _convertBGR2RGBA(uchar3* bgr, uchar4* rgba, int width, int height) {
     }
 }
 
-void convertBGR2RGBA(uchar3* bgr, uchar4* rgba, int width, int height) {
+void convertBGR2RGBA_for(uchar3* bgr, uchar4* rgba, int width, int height) {
     #pragma omp for
+    for (int x=0; x<width*height; ++x) {
+            rgba[x].x = bgr[x].z;
+            rgba[x].y = bgr[x].y;
+            rgba[x].z = bgr[x].x;
+            rgba[x].w = 255;
+    }
+}
+
+void convertBGR2RGBA_schedule_static(uchar3* bgr, uchar4* rgba, int width, int height) {
+    #pragma omp for schedule(static)
+    for (int x=0; x<width*height; ++x) {
+            rgba[x].x = bgr[x].z;
+            rgba[x].y = bgr[x].y;
+            rgba[x].z = bgr[x].x;
+            rgba[x].w = 255;
+    }
+}
+
+void convertBGR2RGBA_schedule_dynamic(uchar3* bgr, uchar4* rgba, int width, int height) {
+    #pragma omp for schedule(dynamic, 20)
     for (int x=0; x<width*height; ++x) {
             rgba[x].x = bgr[x].z;
             rgba[x].y = bgr[x].y;
@@ -91,14 +111,11 @@ int main() {
         tid = omp_get_thread_num();
         cout << "Fil número: " << tid << endl;
         }
-        convertBGR2RGBA(h_bgr, h_rgba, WIDTH, HEIGHT);
+        convertBGR2RGBA_schedule_dynamic(h_bgr, h_rgba, WIDTH, HEIGHT);
 
     }
-    clock_t stop = clock();
-    double elapsed = (double)(stop - start) * 1000.0 / CLOCKS_PER_SEC;
-    printf("Time in ms: %f\n", elapsed);
 
-
+/*
     bool ok = checkResults(h_rgba, h_bgr, WIDTH*HEIGHT);
 
     if (ok) {
@@ -106,7 +123,7 @@ int main() {
     } else {
         std::cout << "Executed!! Results NOT OK." << std::endl;
     }
-
+*/
     return 0;
 
 }
