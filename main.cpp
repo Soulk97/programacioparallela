@@ -5,6 +5,8 @@
 #define WIDTH 3840
 #define HEIGHT 2160
 
+using namespace std;
+
 typedef unsigned char uchar;
 
 struct _uchar3 {
@@ -81,10 +83,17 @@ int main() {
     h_rgba = (uchar4*)malloc(sizeof(uchar4)*WIDTH*HEIGHT);
 
     clock_t start = clock();
-
+    int tid;
     #pragma omp parallel shared(h_bgr, h_rgba)
-    convertBGR2RGBA(h_bgr, h_rgba, WIDTH, HEIGHT);
+    {
+        #pragma omp critical
+        {
+        tid = omp_get_thread_num();
+        cout << "Fil número: " << tid << endl;
+        }
+        convertBGR2RGBA(h_bgr, h_rgba, WIDTH, HEIGHT);
 
+    }
     clock_t stop = clock();
     double elapsed = (double)(stop - start) * 1000.0 / CLOCKS_PER_SEC;
     printf("Time in ms: %f\n", elapsed);
