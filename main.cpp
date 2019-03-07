@@ -52,33 +52,74 @@ void convertBGR2RGBA(uchar3* bgr, uchar4* rgba, int width, int height) {
     }
 }
 
+// Acceso a memoria
+void convertBGR2RGBA_a_memoria(uchar3* bgr, uchar4* rgba, int width, int height) {
+    int i;
+    for (int y=0; y<height; ++y) {
+        for (int x=0; x<width; ++x) {
+            i = width * y + x;
+            rgba[i].x = bgr[i].z;
+            rgba[i].y = bgr[i].y;
+            rgba[i].z = bgr[i].x;
+            rgba[i].w = 255;
+        }
+    }
+}
+
+// parallel
 void convertBGR2RGBA_for(uchar3* bgr, uchar4* rgba, int width, int height) {
+    int i;
     #pragma omp for
-    for (int x=0; x<width*height; ++x) {
-            rgba[x].x = bgr[x].z;
-            rgba[x].y = bgr[x].y;
-            rgba[x].z = bgr[x].x;
-            rgba[x].w = 255;
+    for (int y=0; y<height; ++y) {
+        for (int x=0; x<width; ++x) {
+            i = width * y + x;
+            rgba[i].x = bgr[i].z;
+            rgba[i].y = bgr[i].y;
+            rgba[i].z = bgr[i].x;
+            rgba[i].w = 255;
+        }
     }
 }
 
 void convertBGR2RGBA_schedule_static(uchar3* bgr, uchar4* rgba, int width, int height) {
+    int i;
     #pragma omp for schedule(static)
-    for (int x=0; x<width*height; ++x) {
-            rgba[x].x = bgr[x].z;
-            rgba[x].y = bgr[x].y;
-            rgba[x].z = bgr[x].x;
-            rgba[x].w = 255;
+    for (int y=0; y<height; ++y) {
+        for (int x=0; x<width; ++x) {
+            i = width * y + x;
+            rgba[i].x = bgr[i].z;
+            rgba[i].y = bgr[i].y;
+            rgba[i].z = bgr[i].x;
+            rgba[i].w = 255;
+        }
     }
 }
 
 void convertBGR2RGBA_schedule_dynamic(uchar3* bgr, uchar4* rgba, int width, int height) {
-    #pragma omp for schedule(dynamic, 20)
-    for (int x=0; x<width*height; ++x) {
-            rgba[x].x = bgr[x].z;
-            rgba[x].y = bgr[x].y;
-            rgba[x].z = bgr[x].x;
-            rgba[x].w = 255;
+    int i;
+    #pragma omp for schedule(dynamic, 2000000)
+    for (int y=0; y<height; ++y) {
+        for (int x=0; x<width; ++x) {
+            i = width * y + x;
+            rgba[i].x = bgr[i].z;
+            rgba[i].y = bgr[i].y;
+            rgba[i].z = bgr[i].x;
+            rgba[i].w = 255;
+        }
+    }
+}
+
+void convertBGR2RGBA_schedule_guided(uchar3* bgr, uchar4* rgba, int width, int height) {
+    int i;
+    #pragma omp for schedule(guided, 2000000)
+    for (int y=0; y<height; ++y) {
+        for (int x=0; x<width; ++x) {
+            i = width * y + x;
+            rgba[i].x = bgr[i].z;
+            rgba[i].y = bgr[i].y;
+            rgba[i].z = bgr[i].x;
+            rgba[i].w = 255;
+        }
     }
 }
 
@@ -102,7 +143,6 @@ int main() {
     // Alloc RGBA pointers
     h_rgba = (uchar4*)malloc(sizeof(uchar4)*WIDTH*HEIGHT);
 
-    clock_t start = clock();
     int tid;
     #pragma omp parallel shared(h_bgr, h_rgba)
     {
@@ -111,19 +151,19 @@ int main() {
         tid = omp_get_thread_num();
         cout << "Fil número: " << tid << endl;
         }
-        convertBGR2RGBA_schedule_dynamic(h_bgr, h_rgba, WIDTH, HEIGHT);
+        convertBGR2RGBA_schedule_static(h_bgr, h_rgba, WIDTH, HEIGHT);
 
     }
 
-/*
-    bool ok = checkResults(h_rgba, h_bgr, WIDTH*HEIGHT);
+
+    /*bool ok = checkResults(h_rgba, h_bgr, WIDTH*HEIGHT);
 
     if (ok) {
         std::cout << "Executed!! Results OK." << std::endl;
     } else {
         std::cout << "Executed!! Results NOT OK." << std::endl;
-    }
-*/
+    }*/
+
     return 0;
 
 }
