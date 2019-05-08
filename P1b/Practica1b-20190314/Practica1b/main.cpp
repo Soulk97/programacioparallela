@@ -6,6 +6,8 @@
 
 typedef unsigned char uchar;
 
+struct threadIdx { int x; int y; int z; };
+
 struct _uchar3 {
     uchar x;
     uchar y;
@@ -37,16 +39,24 @@ bool checkResults(uchar4* rgba, uchar3* bgr, int size) {
     return correct;
 }
 
-void convertBGR2RGBA(uchar3* bgr, uchar4* rgba, int width, int height) {
+void convertBGR2RGBA_2for(uchar3* bgr, uchar4* rgba, int width, int height) {
     int i;
     for (int y=0; y<height; ++y) {
-    	for (int x=0; y<width; ++x) {	
+    	for (int x=0; x<width; ++x) {	
             i = width *y +x;
             rgba[i].x = bgr[i].z;
             rgba[i].y = bgr[i].y;
             rgba[i].z = bgr[i].x;
             rgba[i].w = 255;
-	}
+	    }
+    }
+}
+void convertBGR2RGBA_1for(uchar3* bgr, uchar4* rgba, int width, int height) {
+    for (int x=0; x<(width*height); ++x) {
+        rgba[x].x = bgr[x].z;
+        rgba[x].y = bgr[x].y;
+        rgba[x].z = bgr[x].x;
+        rgba[x].w = 255;
     }
 }
 
@@ -68,7 +78,7 @@ int main() {
     // Alloc RGBA pointers
     h_rgba = (uchar4*)malloc(sizeof(uchar4)*WIDTH*HEIGHT);
 
-    convertBGR2RGBA(h_bgr, h_rgba, WIDTH, HEIGHT);
+    convertBGR2RGBA_1for(h_bgr, h_rgba, WIDTH, HEIGHT);
 
     bool ok = checkResults(h_rgba, h_bgr, WIDTH*HEIGHT);
 
