@@ -38,12 +38,14 @@ bool checkResults(uchar4* rgba, uchar3* bgr, int size) {
 }
 
 void convertBGR2RGBA(uchar3* bgr, uchar4* rgba, int width, int height) {
-    for (int x=0; x<width; ++x) {
-    	for (int y=0; y<height; ++y) {	
-	    rgba[width * y + x].x = bgr[width * y + x].z;
-	    rgba[width * y + x].y = bgr[width * y + x].y;
-	    rgba[width * y + x].z = bgr[width * y + x].x;
-	    rgba[width * y + x].w = 255;
+    int i;
+    for (int y=0; y<height; ++y) {
+    	for (int x=0; y<width; ++x) {	
+            i = width *y +x;
+            rgba[i].x = bgr[i].z;
+            rgba[i].y = bgr[i].y;
+            rgba[i].z = bgr[i].x;
+            rgba[i].w = 255;
 	}
     }
 }
