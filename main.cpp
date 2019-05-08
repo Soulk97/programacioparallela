@@ -83,7 +83,7 @@ void convertBGR2RGBA_for(uchar3* bgr, uchar4* rgba, int width, int height) {
 
 void convertBGR2RGBA_schedule_static(uchar3* bgr, uchar4* rgba, int width, int height) {
     int i;
-    #pragma omp for schedule(static)
+    #pragma omp for schedule(static,2000000)
     for (int y=0; y<height; ++y) {
         for (int x=0; x<width; ++x) {
             i = width * y + x;
@@ -97,7 +97,7 @@ void convertBGR2RGBA_schedule_static(uchar3* bgr, uchar4* rgba, int width, int h
 
 void convertBGR2RGBA_schedule_dynamic(uchar3* bgr, uchar4* rgba, int width, int height) {
     int i;
-    #pragma omp for schedule(dynamic, 2000000)
+    #pragma omp for schedule(dynamic, 2000)
     for (int y=0; y<height; ++y) {
         for (int x=0; x<width; ++x) {
             i = width * y + x;
@@ -148,8 +148,8 @@ int main() {
     {
         #pragma omp critical
         {
-        tid = omp_get_thread_num();
-        cout << "Fil número: " << tid << endl;
+            tid = omp_get_thread_num();
+            cout << "Fil número: " << tid << endl;
         }
         convertBGR2RGBA_schedule_static(h_bgr, h_rgba, WIDTH, HEIGHT);
 
